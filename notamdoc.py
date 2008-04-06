@@ -243,12 +243,12 @@ def notamdoc(notams, header, firs, start_date, num_days, filename, mapinfo,
     # plotted on the map.
     # areaNotams are also "interesting" but have radius >30nm.
     # boringNotams have an "uninteresting" subject (e.g. kite flying)
-    local_notams = []
+    interesting_notams = []
     area_notams = []
     boring_notams = []
-    local_coords = []
+    interesting_coords = []
     for n in notams:
-        # Build NOTAM description text
+        # NOTAM description text
         if n.has_key('start'):
             start = n['start'].strftime('%d/%b %H:%M') 
             end = n['end'].strftime('%d/%b %H:%M')
@@ -257,29 +257,28 @@ def notamdoc(notams, header, firs, start_date, num_days, filename, mapinfo,
             notam_text = ''
         notam_text += n['text']
 
-        # Sort into different categories
-        qcode = n['qcode']
-        if (qcode[1]=='R') or\
-           (qcode[1]=='W' and qcode[2] in 'ABGMPR') or\
-           (qcode[1]=='A' and
-            qcode[2] in 'CERTZ' and qcode[3:5] in ['CA', 'CS']):
+        # Sort into interesting, area & boring categories
+        qc = n['qcode']
+        if ((qc[1]=='R') or
+            (qc[1]=='W' and qc[2] in 'ABGMPR') or
+            (qc[1]=='A' and qc[2] in 'CERTZ' and qc[3:5] in ['CA', 'CS'])):
 
             if int(n['radius']) > 30:
                 area_notams.append(notam_text)
             else:
-                local_notams.append(notam_text)
+                interesting_notams.append(notam_text)
 
                 # Coordinates for map
                 ctext = n['centre']
                 lat = int(ctext[:2]) + int(ctext[2:4])/60.0
                 lon = int(ctext[5:8]) + int(ctext[8:10])/60.0
                 if ctext[10] == 'W':
-                    lon = - lon
+                    lon = -lon
                 rad = int(n['radius'])
-                local_coords.append((lat, lon, rad))
+                interesting_coords.append((lat, lon, rad))
         elif qcode[1]=='W':
             boring_notams.append(notam_text)
 
-    format_doc(local_notams, area_notams, boring_notams, local_coords,
-               header, firs, start_date, num_days, filename, mapinfo,
-               copyright_holder)
+    format_doc(interesting_notams, area_notams, boring_notams,
+               interesting_coords, header, firs, start_date, num_days,
+               filename, mapinfo, copyright_holder)

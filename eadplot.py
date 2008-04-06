@@ -87,8 +87,8 @@ def parse_notams(notam_root):
             body = item_e
 
         item_f = n.findtext('ItemF', '')
-        item_g = n.findtext('ItemG', '')
         if item_f:
+            item_g = n.findtext('ItemG', '')
             body += '\n' + item_f + ' - ' + item_g
         notam['text'] = body
 
