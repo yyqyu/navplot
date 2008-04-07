@@ -96,7 +96,7 @@ def drawFirstPage(canvas, doc):
     # Small print
     canvas.setFont('Helvetica', 10)
     canvas.drawString(doc.leftMargin, doc.bottomMargin,
-        "IMPORTANT: Do not rely on this map. Check NOTAM's from an official "\
+        "IMPORTANT: Do not rely on this map - check NOTAM's from an official "\
         "source. Data "+UTF8_COPYRIGHT_SIGN+' '+doc.copyright_holder)
 
     # Clipping rectangle for the map
@@ -276,7 +276,7 @@ def notamdoc(notams, header, firs, start_date, num_days, filename, mapinfo,
                     lon = -lon
                 rad = int(n['radius'])
                 interesting_coords.append((lat, lon, rad))
-        elif qcode[1]=='W':
+        elif qc[1]=='W':
             boring_notams.append(notam_text)
 
     format_doc(interesting_notams, area_notams, boring_notams,

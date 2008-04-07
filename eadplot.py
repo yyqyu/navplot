@@ -48,7 +48,7 @@ DFLT_LATITUDE = 50.2
 DFLT_LONGITUDE = -4.5
 DFLT_WIDTH = 6.0
 
-COPYRIGHT_HOLDER = "EURCONTROL"
+COPYRIGHT_HOLDER = "EUROCONTROL"
 
 #------------------------------------------------------------------------------
 def parse_notams(notam_root):
@@ -157,16 +157,15 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
     root = ET.fromstring(response.read())
     onload = root.find('{http://www.w3.org/1999/xhtml}body').attrib['onload']
 
-    # Extract the path and change HTML to XML
+    # Extract the PIBId attribute
     s = re.search("PIBId=(\d+)", onload)
     if s is None:
         return 0
     pib_id = s.group(1)
 
+    # Get briefing in XML format and convert to an ElementTree
     url = url_base + '/ino/servlet/PIBGenerator?' +\
         urllib.urlencode({'PIBId': pib_id, 'PIBLayout': 'XML'})
-
-    # Get the NOTAM information and convert to an ElementTree
     response = opener.open(url)
     xml_str = response.read()
     root = ET.fromstring(xml_str)
