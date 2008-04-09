@@ -18,6 +18,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import datetime
 import os
 import tempfile
 import time
@@ -26,7 +27,7 @@ import sys
 import urllib2
 import wx
 import wx.lib.hyperlink
-import navplot
+import eadplot as navplot
 
 SECS_IN_DAY = 24*60*60
 
@@ -187,12 +188,12 @@ class NotamPanel(wx.Panel):
         self.SetSizer(border)
 
     def get_values(self):
-        date = self.time + self.datechoice.GetSelection()*SECS_IN_DAY
-        days = self.dayschoice.GetSelection()
+        day = self.datechoice.GetSelection()
+        num_days = self.dayschoice.GetSelection() + 1
         fir = self.firchoice.GetSelection()
 
-        firs = (('EGTT', ''), ('EGPX', ''), ('EGTT', 'EGPX'))[fir]
-        return (firs, date, days)
+        firs = (('EGTT', ), ('EGPX', ), ('EGTT', 'EGPX'))[fir]
+        return (firs, day, num_days)
 
 #------------------------------------------------------------------------------
 # Program information
@@ -248,12 +249,13 @@ class MainPanel(wx.Panel):
         sizer.Fit(self)
 
     def on_click(self, event):
-        firs, start, ndays = self.notam_panel.get_values()
+        firs, day, num_days = self.notam_panel.get_values()
         user, pwd, mapinfo = self.settings_panel.get_values()
-        end = start + ndays*SECS_IN_DAY
 
         dir = tempfile.gettempdir()
         filename = self.make_tmpfile(dir)
+
+        start_date = datetime.date.today() + datetime.timedelta(day)
 
         msg = MsgDialog(self.GetParent(),
             'Dowloading NOTAMS from www.ais.org.uk\n'
@@ -263,8 +265,8 @@ class MainPanel(wx.Panel):
         wx.BeginBusyCursor()
         wx.SafeYield()
         try:
-            n = navplot.navplot(filename, firs, time.localtime(start),
-                                time.localtime(end), user, pwd, mapinfo)
+            n = navplot.navplot(filename, firs, start_date, num_days, user, pwd,
+                                mapinfo)
         finally:
             msg.Destroy()
             wx.EndBusyCursor()
