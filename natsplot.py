@@ -63,6 +63,7 @@ QGroupRe = re.compile(r'^Q\)'
 
 ENROUTE_HEADER = 'E N - R O U T E - I N F O R M A T I O N'
 
+NOTAM_PROVIDER = 'AIS'
 COPYRIGHT_HOLDER = 'NATS Ltd'
 
 #------------------------------------------------------------------------------
