@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
-# NavPlot - Download NOTAMs from www.ais.org.uk and generate PDF viewer file.
+# NavPlot - Download NOTAMs from www.ead.eurocontrol.int and generate PDF viewer
+# file.
 # Copyright (C) 2005-2008  Alan Sparrow
 # alan at freeflight dot org dot uk
 #
@@ -36,7 +37,7 @@ except ImportError:
 #------------------------------------------------------------------------------
 # Modify stuff here as required
 
-# Username and password for AIS self-briefing
+# Username and password for EAD
 USERNAME=''
 PASSWORD=''
 
@@ -48,7 +49,8 @@ DFLT_LATITUDE = 50.2
 DFLT_LONGITUDE = -4.5
 DFLT_WIDTH = 6.0
 
-COPYRIGHT_HOLDER = "EUROCONTROL"
+NOTAM_PROVIDER = 'EAD'
+COPYRIGHT_HOLDER = 'EUROCONTROL'
 
 #------------------------------------------------------------------------------
 def parse_notams(notam_root):
@@ -202,8 +204,8 @@ def usage():
     print 'Options:'
     print '    -d    Number of days offset from today'
     print '    -n    Number of days to get (default 1)'
-    print '    -p    AIS password'
-    print '    -u    AIS username'
+    print '    -p    EAD basic - password'
+    print '    -u    EAD basic - username'
 
 #------------------------------------------------------------------------------
 def main():
