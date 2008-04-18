@@ -1,6 +1,7 @@
 # -*- coding: iso-8859-1
 #
-# NavPlot - Download NOTAMs from www.ais.org.uk and generate PDF viewer file.
+# NavPlot - Download NOTAMs from http://www.ead.eurocontrol.int and generate PDF
+# viewer file.
 # Copyright (C) 2005  Alan Sparrow
 # alan at freeflight dot org dot uk
 #
@@ -47,7 +48,7 @@ class MsgDialog(wx.Dialog):
         sizer.Fit(self)
 
 #------------------------------------------------------------------------------
-# AIS login details and map drawing stuff
+# Login details and map drawing stuff
 class SettingsPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
@@ -86,7 +87,7 @@ class SettingsPanel(wx.Panel):
             wx.StaticText(self, label='Password'), 0, wx.ALIGN_CENTER_VERTICAL)
         aissizer.Add(self.pwd_ctrl, 0, wx.LEFT, 4)
 
-        aisbox = wx.StaticBox(self, label='AIS Login')
+        aisbox = wx.StaticBox(self, label='Login')
         aisboxsizer = wx.StaticBoxSizer(aisbox, wx.VERTICAL)
         aisboxsizer.Add(aissizer, 0, wx.ALL, 8)
 
@@ -110,8 +111,8 @@ class SettingsPanel(wx.Panel):
 
     def on_save(self, event):
         self.get_values()
-        self.config.Write('AIS Username', self.user)
-        self.config.Write('AIS Password', self.password)
+        self.config.Write('Username', self.user)
+        self.config.Write('Password', self.password)
         self.config.WriteFloat('Longitude', self.longitude)
         self.config.WriteFloat('Latitude', self.latitude)
         self.config.WriteFloat('Map Width', self.width)
@@ -120,8 +121,8 @@ class SettingsPanel(wx.Panel):
         self.load_config()
 
     def load_config(self):
-        self.user = self.config.Read('AIS Username')
-        self.password = self.config.Read('AIS Password')
+        self.user = self.config.Read('Username')
+        self.password = self.config.Read('Password')
         self.latitude = self.config.ReadFloat('Latitude', navplot.DFLT_LATITUDE)
         self.longitude = self.config.ReadFloat('Longitude',
                                                navplot.DFLT_LONGITUDE)
@@ -180,8 +181,8 @@ class NotamPanel(wx.Panel):
         border.Add(boxsizer, 1, wx.ALL|wx.EXPAND, 4)
 
         text = wx.StaticText(self, label=
-            'Displays Navigation Warnings from UK AIS site at www.ais.org.uk\n'
-            'Requires an AIS account and a PDF reader to view the results')
+            'Displays Notams from EAD site at www.ead.eurocontrol.int\n'
+            'Requires an EAD account and a PDF reader to view the results')
         border.Add(text, 0, wx.ALL, 8)
 
         self.SetAutoLayout(True)
@@ -204,7 +205,7 @@ class AboutPanel(wx.Panel):
         space = wx.BoxSizer(wx.VERTICAL)
 
         t = wx.StaticText(self, label=
-            'NavPlot Version 0.3.2, Copyright © 2005-7 Alan Sparrow')
+            u'NavPlot Version 0.4, Copyright © 2005-8 Alan Sparrow')
         border.Add(t)
         t = wx.StaticText(self, label=
             'NavPlot comes with ABSOLUTELY NO WARRANTY. This is\n'
@@ -258,7 +259,7 @@ class MainPanel(wx.Panel):
         start_date = datetime.date.today() + datetime.timedelta(day)
 
         msg = MsgDialog(self.GetParent(),
-            'Dowloading NOTAMS from www.ais.org.uk\n'
+            'Dowloading NOTAMS from EAD\n'
             'This may take half a minute or more. Please be patient...',
             'NOTAM Download')
         msg.Show(True)
@@ -326,7 +327,7 @@ class NotamApp(wx.App):
             msg = 'Error parsing the map coordinate settings.\n'\
                   'Reset the values or check they are valid numbers'
         elif type == urllib2.URLError:
-            msg = 'Unable to connect to the AIS website'
+            msg = 'Unable to connect to the EAD website'
         else:
             import traceback
             msg = ''
