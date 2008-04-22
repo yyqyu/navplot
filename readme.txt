@@ -1,5 +1,5 @@
 NavPlot
-Copyright (C) 2005 Alan Sparrow
+Copyright (C) 2005-8 Alan Sparrow
 alan at freeflight dot org dot uk
 
 1. Running the program -
@@ -7,11 +7,9 @@ alan at freeflight dot org dot uk
     Or use the Windows standalone executable
 
 2. Requirements (for command line version) -
-    Python 2.3 or greater (www.python.org)
+    Python 2.4 or greater (www.python.org)
     ReportLab Open Source PDF library (www.reportlab.org)
     (For Windows GUI) wxPython GUI toolkit (www.wxpython.org)
-    (For Python 2.3) ClientCookie module
-                     (wwwsearch.sourceforge.net/ClientCookie/)
 
 3. Build instructions for Windows standalone executable -
     python setup.py py2exe - builds windows executable in dist directory.
