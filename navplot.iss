@@ -1,6 +1,6 @@
 [Setup]
 AppName=NavPlot
-AppVerName=NavPlot v0.3.2
+AppVerName=NavPlot v0.4
 DefaultDirName={pf}\Freeflight\NavPlot
 LicenseFile=gpl.txt
 ShowLanguageDialog=auto
