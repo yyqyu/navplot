@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # NavPlot - Download NOTAMs from www.ais.org.uk and generate PDF viewer file.
-# Copyright (C) 2005  Alan Sparrow
+# Copyright (C) 2008  Alan Sparrow
 # alan at freeflight dot org dot uk
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -18,21 +18,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import notamdoc
-import getopt
+import BeautifulSoup
 import datetime
+import mechanize
+import optparse
 import re
 import sys
 import time
-import HTMLParser
-import urllib2
+import notamdoc
 
-# Try Python 2.4 built in cookielib, else fallback to 3rd party ClientCookie
-cookielib = None
-try:
-    import cookielib
-except ImportError:
-    import ClientCookie
+LOGIN_URL = "http://www.nats-uk.ead-it.com/fwf-natsuk/public/user/account/login.faces"
+COPYRIGHT_HOLDER = 'NATS Ltd'
 
 #------------------------------------------------------------------------------
 # Modify stuff here as required
@@ -50,7 +46,7 @@ DFLT_LONGITUDE = -4.5
 DFLT_WIDTH = 6.0
 
 # Regex for the Q-line and NOTAM text
-QGroupRe = re.compile(r'^Q\)'
+QGroupRe = re.compile(r'^Q\) '
     r'(?P<fir>[A-Z]+)/'
     r'(?P<qcode>Q[A-Z]+)/'
     r'(?P<traffic>[IV]+)/'
@@ -58,184 +54,112 @@ QGroupRe = re.compile(r'^Q\)'
     r'(?P<scope>[AEW]+)/'
     r'(?P<lower>\d+)/'
     r'(?P<upper>\d+)/'
-    r'(?P<centre>\d{4}[NS]\d{5}[EW])(?P<radius>\d{3})[ ]*\n'
-    r'(?P<text>(?:[ \t]*\S.*\n)+)', re.MULTILINE)
-
-ENROUTE_HEADER = 'E N - R O U T E - I N F O R M A T I O N'
-
-NOTAM_PROVIDER = 'AIS'
-COPYRIGHT_HOLDER = 'NATS Ltd'
+    r'(?P<centre>\d{4}[NS]\d{5}[EW])(?P<radius>\d{3})[ ]*')
 
 #------------------------------------------------------------------------------
-# HMTL parser for AIS area briefing
+# Extract NOTAM data from the HTML soup
+def parse_notam_soup(soup):
+    # Find all the Q-codes
+    notam_dict = {}
+    for q in soup.findAll(text=QGroupRe):
+        # Q code is in tr->td->div
+        notam_row = q.parent.parent.parent
 
-class PibHtmlParser(HTMLParser.HTMLParser):
-    def __init__(self):
-        HTMLParser.HTMLParser.__init__(self)
-        self.preTag = False
-        self.pibData = False
-        self.notams = {}
-        self.badCount = False
+        # Get NOTAM id from adjancent cell to the NOTAM
+        id = notam_row.find('td', {"class": "right"}).string
 
-    def handle_starttag(self, tag, attrs):
-        if tag == 'pre':
-            self.preTag = True
-        elif tag == 'a':
-            if self.preTag and attrs:
-                if attrs[0][0] == 'name' and attrs[0][1] == 'notampib':
-                    self.pibData = True
+        n_dict = QGroupRe.match(q.string).groupdict()
+        notam = q.parent.parent
+        n_dict["text"] = '\n'.join([n.string for n in notam.findAll()])
 
-    def handle_endtag(self, tag):
-        if tag == 'pre':
-            self.preTag = False
+        notam_dict[id] = n_dict
 
-    def handle_data(self, data):
-        if self.pibData:
-            sdata = data.replace('\r', '')
-            self.header = sdata[:sdata.find('--------')]
-            ndata = sdata[sdata.find(ENROUTE_HEADER):]
-
-            # Count number of Q-lines
-            qcount = ndata.count('\nQ)')
-
-            # Iterrate through NOTAMs storing only the NAVWs
-            ncount = 0
-            self.notams = []
-            for notam in QGroupRe.finditer(ndata):
-                ncount += 1
-                ndict = notam.groupdict()
-                self.notams.append(ndict)
-
-            self.pibData = False
-            if qcount != ncount:
-                self.badCount = True
+    return notam_dict.values()
 
 #-----------------------------------------------------------------------------
-# Returns number of NOTAMS displayed. Zero if no notams can be retreived and
-# -1 if there is an inconsistancy in the NOTAM count
-
+# Get NOTAMS from AIS website & make PDF document
 def navplot(filename, firs, start_date, num_days, username, password, mapinfo):
-    if cookielib:
-        cj = cookielib.CookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+    # Calculate dates
+    if start_date == datetime.date.today():
+        utc = datetime.datetime.utcnow()
+        start_hour = utc.hour
+        start_min = utc.minute
     else:
-        cj = ClientCookie.CookieJar()
-        opener = ClientCookie.build_opener(ClientCookie.HTTPCookieProcessor(cj))
+        start_hour = 0
+        start_min = 0
+    end_date = start_date + datetime.timedelta(days=num_days-1)
 
-    # Login to AIS (and get the security cookie)
-    url = 'http://www.ais.org.uk/aes/j_security_check?'\
-          'j_username=%s&j_password=%s'
-    opener.open(url % (username, password))
+    # Create browser, get login page and login
+    br = mechanize.Browser()
+    br.open(LOGIN_URL)
+    br.select_form(name="mainForm")
+    br["j_username"] = username
+    br["j_password"] = password
+    br.submit()
 
-    # Get NOTAM information
-    url = 'http://www.ais.org.uk/aes/control/briefing?'\
-          'HF_ACTION=send&'\
-          'VF_STARTTIME=0001&'\
-          'VF_STARTDATE=%(startdate)s&'\
-          'VF_ENDTIME=2359&'\
-          'VF_ENDDATE=%(enddate)s&'\
-          'VF_FIR0=%(fir0)s&'\
-          'VF_FIR1=%(fir1)s&'\
-          'VF_LEVLOW=000&'\
-          'VF_LEVUP=100&'\
-          'VF_ARCID=NPLT&'\
-          'VF_ADES=EGDM&'\
-          'VF_ADEP=EGDM&'\
-          'VF_EOBT=&'\
-          'VF_EOBD=&'\
-          'VF_NOTAMPIB=NOTAMPIB&'\
-          'VF_METEOPIB=&'\
-          'VF_PURPOSE=+NBO+BO+B+M+NM&'\
-          'VF_TRAFFIC=+V+IV&'\
-          'VF_MAXVALID=&'\
-          'HF_PAGEID=briefing_area&'\
-          'HF_PAGETYPE=briefing_area&'\
-          'HF_IS_DOMESTIC=true&'\
-          'HF_FORMAT=ASCII&'\
-          'HF_DOM_ICAO_CD=EG&'\
-          'HF_HELPFIELD='
+    # Get area brief request page
+    br.select_form(name="menuView:menuForm")
+    br.form.find_control("menuView:menuForm:_idcl").readonly = False
+    br["menuView:menuForm:_idcl"] = "menuView:menuForm:notam_area"
+    br.submit()
 
-    if len(firs)>1:
-        fir1 = firs[1]
-    else:
-        fir1 = ''
-    start_str = start_date.strftime('%y%m%d')
-    end_str = (start_date + datetime.timedelta(num_days-1)).strftime('%y%m%d')
-    url = url % {'startdate': start_str,
-                 'enddate': end_str,
-                 'fir0': firs[0],
-                 'fir1': fir1}
+    # Get area brief
+    br.select_form(name="mainForm")
+    br["mainForm:startValidityDay"]    = [str(start_date.day)]
+    br["mainForm:startValidityMonth"]  = [str(start_date.month-1)]
+    br["mainForm:startValidityYear"]   = [str(start_date.year)]
+    br["mainForm:startValidityHour"]   = [str(start_hour)]
+    br["mainForm:startValidityMinute"] = [str(start_min)]
+    br["mainForm:endValidityDay"]      = [str(end_date.day)]
+    br["mainForm:endValidityMonth"]    = [str(end_date.month-1)]
+    br["mainForm:endValidityYear"]     = [str(end_date.year)]
+    br["mainForm:endValidityHour"]     = ["23"]
+    br["mainForm:endValidityMinute"]   = ["59"]
+    br["mainForm:traffic"]             = ["V"]
+    br["mainForm:lowerFL"]             = "000"
+    br["mainForm:upperFL"]             = "100"
+    for i, fir in enumerate(firs):
+        br["mainForm:fir_%d" % i] = fir
+    response = br.submit()
 
-    # Filter the NAVW's
-    pibParser = PibHtmlParser()
-    pibParser.feed(opener.open(url).read())
+    # Create soup from response and then parse for NOTAMs
+    notam_soup = BeautifulSoup.BeautifulSoup(response.read())
+    notams = parse_notam_soup(notam_soup)
 
-    if pibParser.notams:
-        notamdoc.notamdoc(pibParser.notams, pibParser.header, firs, start_date,
-                          num_days, filename, mapinfo, COPYRIGHT_HOLDER)
+    # Get the header text
+    div = notam_soup.find("div", {"id": "mainColContent"})
+    hdr = '\n'.join([' '.join([x.string.strip() for x in l(text=True)])
+                     for l in div('li')])
 
-    if pibParser.badCount:
-        return -1
-    else:
-        return len(pibParser.notams)
+    # Create PDF document
+    notamdoc.notamdoc(notams, hdr, firs, start_date, num_days,
+                      filename, mapinfo, COPYRIGHT_HOLDER)
 
 #------------------------------------------------------------------------------
-
-def usage():
-    print 'usage: navplot [options] PDF_filename'
-    print ''
-    print 'Options:'
-    print '    -d    Number of days offset from today'
-    print '    -n    Number of days to get (default 1)'
-    print '    -p    AIS password'
-    print '    -u    AIS username'
-    print '    -x    Proxy http server, e.g. garlic:80'
-
-#------------------------------------------------------------------------------
-
 def main():
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], 'd:n:p:u:h')
-    except getopt.GetoptError:
-        usage()
-        sys.exit(2)
+    usage = "usage: %prog [options] pdf_filename"
+    parser = optparse.OptionParser(usage)
+    parser.set_defaults(delta_day=0, num_days=1, username=USERNAME,
+                        password=PASSWORD)
+    parser.add_option("-d", dest="delta_day", type="int",
+                      help="Days offset from today (default 0)")
+    parser.add_option("-n", dest="num_days", type="int",
+                      help="Number of days (default 1)")
+    parser.add_option("-p", dest="password", help="AIS password")
+    parser.add_option("-u", dest="username", help="AIS username")
 
-    # Get any options
-    day_delta = 0
-    ndays = 1
-    username = USERNAME
-    password = PASSWORD
-    for o, a in opts:
-        if o == '-h':
-            usage()
-            sys.exit()
-        if o == '-d':
-            # Convert days to seconds
-            day_delta = int(a)
-        if o == '-n':
-            ndays = int(a)
-        if o == '-u':
-            username = a
-        if o == '-p':
-            password = a
-
-    # Get the PDF filename
+    (options, args) = parser.parse_args()
     if len(args) != 1:
-        usage()
+        parser.print_help()
         sys.exit(2)
-    else:
-        pdf = args[0]
+    pdf_filename = args[0]
 
-    # Work with UTC times/dates
+    # Use with UTC times/dates
     start_date = datetime.datetime.utcnow().date() +\
-                 datetime.timedelta(day_delta)
+                 datetime.timedelta(options.delta_day)
 
-    n = navplot(pdf, FIRS, start_date, ndays, username, password,
-                (DFLT_LATITUDE, DFLT_LONGITUDE, DFLT_WIDTH))
-    if n==0:
-        sys.stderr.write("Can't get any NOTAMS, check user name and password\n")
-    elif n==-1:
-        sys.stderr.write('WARNING: Inconsistent NOTAM/QLINE count\n')
+    navplot(pdf_filename, FIRS, start_date, options.num_days, options.username,
+            options.password, (DFLT_LATITUDE, DFLT_LONGITUDE, DFLT_WIDTH))
 
 if __name__ == '__main__':
     main()
