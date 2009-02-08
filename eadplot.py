@@ -19,10 +19,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import notamdoc
 import cookielib
 import datetime
 import getopt
+import htmlentitydefs
 import re
 import sys
 import time
@@ -33,6 +33,8 @@ try:
     import xml.etree.ElementTree as ET
 except ImportError:
     import elementtree.ElementTree as ET
+
+import notamdoc
 
 #------------------------------------------------------------------------------
 # Modify stuff here as required
@@ -52,8 +54,15 @@ DFLT_WIDTH = 6.0
 NOTAM_PROVIDER = 'EAD'
 COPYRIGHT_HOLDER = 'EUROCONTROL'
 
+class NavplotError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
 #------------------------------------------------------------------------------
 def parse_notams(notam_root):
+    """Parse XML data from EAD and produce NOTAM dictionary"""
     notam_dict = {}
     for n in notam_root.findall('FIRSection/*/NotamList/Notam'):
         # Make unique notam identifier
@@ -100,8 +109,49 @@ def parse_notams(notam_root):
     return notam_dict.values()
 
 #------------------------------------------------------------------------------
+def encode_multipart_formdata(fields):
+    """Convert dictionary to POST multipart form data"""
+    BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
+    CRLF = '\r\n'
+    L = []
+    for key in fields:
+        L.append('--' + BOUNDARY)
+        L.append('Content-Disposition: form-data; name="%s"' % key)
+        L.append('')
+        L.append(fields[key])
+    L.append('--' + BOUNDARY + '--')
+    L.append('')
+    data = CRLF.join(L)
+    content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+    return content_type, data
+
+def unescape(text):
+    """Unescape HTML entities - code from Fredrik Lundh"""
+    def fixup(m):
+        text = m.group(0)
+        if text[:2] == "&#":
+            # character reference
+            try:
+                if text[:3] == "&#x":
+                    return unichr(int(text[3:-1], 16))
+                else:
+                    return unichr(int(text[2:-1]))
+            except ValueError:
+                pass
+        else:
+            # named entity
+            try:
+                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+            except KeyError:
+                pass
+        return text # leave as is
+    return re.sub("&#?\w+;", fixup, text)
+
+#------------------------------------------------------------------------------
 def navplot(pdf_filename, firs, start_date, num_days, username, password,
             mapinfo):
+    """Download NOTAM data from EAD Basic website, parse NOTAM data and
+       convert to PDF document."""
 
     # Build url opener with cookie handling
     cj = cookielib.CookieJar()
@@ -117,6 +167,15 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
     data = urllib.urlencode(values)
     response = opener.open(url, data)
 
+    # Get applications page search for URL path (including authenication cookie)
+    # for the NOTAM app
+    url = url_base + "/publicuser/protect/pu/applicationenter.do"
+    response = opener.open(url)
+    s = re.search("'Generate PIB', '([^']*)", response.read())
+    if s is None:
+        raise NavplotError("Can't get NOTAM application path")
+    notam_gen_path = s.group(1)
+
     # Calculate duration (with adjustment if we are part way though day 1)
     duration = num_days*24
     if start_date==datetime.date.today():
@@ -130,7 +189,7 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
 
     # Build POST data for NOTAM request
     values = {
-        'action': 'generate',
+        #'action': 'generate',
         'PIBSubject': 'navplot',
         'Validity/Day': start_date.strftime('%d'),
         'Validity/Month': start_date.strftime('%b').upper(),
@@ -149,32 +208,30 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
     for n, fir in enumerate(firs):
         values['SimpleGeoFilter/FIRList/FIR[%d]/ICAO' % (n+1)] = fir
 
-    # POST NOTAM request
-    url = url_base + '/ino/servlet/PIBHtmlServlet'
-    data = urllib.urlencode(values)
-    response = opener.open(url, data)
+    # POST multipart (why???) encoded NOTAM request
+    url = url_base + notam_gen_path + "?action=generate"
+    content_type, data = encode_multipart_formdata(values)
+    request = urllib2.Request(url=url, data=data)
+    request.add_header('content-type', content_type)
+    response = opener.open(request)
 
     # POST returns the orignal page with wanted NOTAM info in the 'onload'
     # attribute of the HTML body
-    root = ET.fromstring(response.read())
-    onload = root.find('{http://www.w3.org/1999/xhtml}body').attrib['onload']
-
-    # Extract the PIBId attribute
-    s = re.search("PIBId=(\d+)", onload)
+    s = re.search("onload=\"window.open\('([^']*)'\)", response.read())
     if s is None:
-        return 0
-    pib_id = s.group(1)
+        raise NavplotError("Can't get NOTAM page")
+    notam_path = unescape(s.group(1))
+    notam_path = re.sub("PIBLayout=HTML", "PIBLayout=XML", notam_path)
 
     # Get briefing in XML format and convert to an ElementTree
-    url = url_base + '/ino/servlet/PIBGenerator?' +\
-        urllib.urlencode({'PIBId': pib_id, 'PIBLayout': 'XML'})
+    url = url_base + notam_path
     response = opener.open(url)
     xml_str = response.read()
     root = ET.fromstring(xml_str)
 
     # Logout from EAD
-    url = url_base + '/publicuser/public/py/logout.do'
-    response = opener.open(url)
+    url = url_base + '/publicuser/public/pu/logout.do'
+    opener.open(url)
 
     # Parse NOTAMS from XML
     notams = parse_notams(root)
@@ -244,8 +301,12 @@ def main():
     start_date = datetime.datetime.utcnow().date() +\
                  datetime.timedelta(delta_day)
 
-    n = navplot(pdf, FIRS, start_date, num_days, username, password,
-                (DFLT_LATITUDE, DFLT_LONGITUDE, DFLT_WIDTH))
+    n = 0
+    try:
+        n = navplot(pdf, FIRS, start_date, num_days, username, password,
+                    (DFLT_LATITUDE, DFLT_LONGITUDE, DFLT_WIDTH))
+    except NavplotError, err:
+        sys.stderr.write(err.value + "\n")
 
     if n==0:
         sys.stderr.write("Can't get any NOTAMS, check user name and password\n")
