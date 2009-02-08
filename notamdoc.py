@@ -106,7 +106,7 @@ def drawFirstPage(canvas, doc):
     canvas.clipPath(path)
 
     # Drawing style for the map
-    canvas.setLineWidth(0.2)
+    canvas.setLineWidth(0.4)
     canvas.setFillColor(gray)
 
     # Draw the other map stuff. Coordinate file must be in mapinfo format.
