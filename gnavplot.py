@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: iso-8859-1
 #
 # NavPlot - Download NOTAMs from http://www.ead.eurocontrol.int and generate PDF
@@ -56,7 +57,8 @@ class SettingsPanel(wx.Panel):
         self.config = wx.Config('Freeflight')
         self.config.SetPath('NavPlot')
 
-        border = wx.BoxSizer(wx.HORIZONTAL)
+        border = wx.BoxSizer(wx.VERTICAL)
+        settingsizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.lat_ctrl = wx.TextCtrl(self, size=(75, -1))
         self.lon_ctrl = wx.TextCtrl(self, size=(75, -1))
@@ -75,10 +77,12 @@ class SettingsPanel(wx.Panel):
         mapbox = wx.StaticBox(self, label='Map Coordinates')
         mapboxsizer = wx.StaticBoxSizer(mapbox, wx.VERTICAL)
         mapboxsizer.Add(mapsizer, 0, wx.ALL, 8)
-        border.Add(mapboxsizer, 0, wx.ALL, 4)
+        settingsizer.Add(mapboxsizer, 0, wx.ALL, 4)
 
         self.user_ctrl = wx.TextCtrl(self)
         self.pwd_ctrl = wx.TextCtrl(self, style=wx.TE_PASSWORD)
+        self.fir_choice = wx.Choice(self, choices=['London', 'Scottish', 'Both'])
+        self.fir_choice.SetSelection(0)
         aissizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
         aissizer.Add(
             wx.StaticText(self, label='Username'), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -86,10 +90,18 @@ class SettingsPanel(wx.Panel):
         aissizer.Add(
             wx.StaticText(self, label='Password'), 0, wx.ALIGN_CENTER_VERTICAL)
         aissizer.Add(self.pwd_ctrl, 0, wx.LEFT, 4)
+        aissizer.Add(
+            wx.StaticText(self, label="FIR"), 0, wx.ALIGN_CENTER_VERTICAL)
+        aissizer.Add(self.fir_choice, 0, wx.LEFT, 4)
 
-        aisbox = wx.StaticBox(self, label='Login')
+        aisbox = wx.StaticBox(self, label='Notam Access')
         aisboxsizer = wx.StaticBoxSizer(aisbox, wx.VERTICAL)
         aisboxsizer.Add(aissizer, 0, wx.ALL, 8)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(aisboxsizer)
+        settingsizer.Add(sizer, 0, wx.ALL, 4)
+        border.Add(settingsizer, 0, wx.ALL, 4)
 
         resetbutton = wx.Button(self, label='Reset')
         self.Bind(wx.EVT_BUTTON, self.on_reset, resetbutton)
@@ -98,11 +110,7 @@ class SettingsPanel(wx.Panel):
         buttonsizer = wx.BoxSizer(wx.HORIZONTAL)
         buttonsizer.Add(resetbutton, 0, wx.ALIGN_LEFT)
         buttonsizer.Add(savebutton, 0, wx.LEFT|wx.ALIGN_RIGHT, 8)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(aisboxsizer)
-        sizer.Add(buttonsizer, 0, wx.ALL|wx.ALIGN_RIGHT, 8)
-        border.Add(sizer, 0, wx.ALL, 4)
+        border.Add(buttonsizer, 0, wx.LEFT | wx.BOTTOM, 8)
 
         self.SetAutoLayout(True)
         self.SetSizer(border)
@@ -113,6 +121,7 @@ class SettingsPanel(wx.Panel):
         self.get_values()
         self.config.Write('Username', self.user)
         self.config.Write('Password', self.password)
+        self.config.WriteInt('FIR', self.fir)
         self.config.WriteFloat('Longitude', self.longitude)
         self.config.WriteFloat('Latitude', self.latitude)
         self.config.WriteFloat('Map Width', self.width)
@@ -121,8 +130,9 @@ class SettingsPanel(wx.Panel):
         self.load_config()
 
     def load_config(self):
-        self.user = self.config.Read('Username')
-        self.password = self.config.Read('Password')
+        self.user = self.config.Read('Username', '')
+        self.password = self.config.Read('Password', '')
+        self.fir = self.config.ReadInt('FIR', 0)
         self.latitude = self.config.ReadFloat('Latitude', navplot.DFLT_LATITUDE)
         self.longitude = self.config.ReadFloat('Longitude',
                                                navplot.DFLT_LONGITUDE)
@@ -132,15 +142,17 @@ class SettingsPanel(wx.Panel):
     def get_values(self):
         self.user = self.user_ctrl.GetValue()
         self.password = self.pwd_ctrl.GetValue()
+        self.fir = self.fir_choice.GetSelection()
         self.latitude = float(self.lat_ctrl.GetValue())
         self.longitude = float(self.lon_ctrl.GetValue())
         self.width = abs(float(self.width_ctrl.GetValue()))
-        return self.user, self.password,\
+        return self.user, self.password, self.fir,\
                (self.latitude, self.longitude, self.width)
 
     def set_values(self):
         self.user_ctrl.SetValue(self.user)
         self.pwd_ctrl.SetValue(self.password)
+        self.fir_choice.SetSelection(self.fir)
         self.lat_ctrl.SetValue(str(self.latitude))
         self.lon_ctrl.SetValue(str(self.longitude))
         self.width_ctrl.SetValue(str(self.width))
@@ -148,10 +160,10 @@ class SettingsPanel(wx.Panel):
 #------------------------------------------------------------------------------
 # NOTAM FIR(s) and dates
 class NotamPanel(wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, main_panel):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
+        self.main_panel = main_panel
         self.time = time.time()
-        border = wx.BoxSizer(wx.VERTICAL)
 
         days = [time.strftime('%A', time.localtime(self.time+d*SECS_IN_DAY))
                 for d in range(7)]
@@ -161,16 +173,18 @@ class NotamPanel(wx.Panel):
         self.datechoice.SetSelection(0)
         self.dayschoice = wx.Choice(self, choices=['1', '2', '3'])
         self.dayschoice.SetSelection(0)
-        self.firchoice = wx.Choice(self, choices=['London', 'Scottish', 'Both'])
-        self.firchoice.SetSelection(0)
 
-        ctrlsizer = wx.FlexGridSizer(cols=4, hgap=8, vgap=10)
+        notam_button = wx.Button(self, label='Get NOTAMS')
+        notam_button.SetDefault()
+        self.Bind(wx.EVT_BUTTON, self.main_panel.on_click, notam_button)
+
+        text = wx.StaticText(self, label=
+            'Displays Notams from EAD site at www.ead.eurocontrol.int')
+
+        ctrlsizer = wx.FlexGridSizer(cols=2, hgap=8, vgap=10)
         ctrlsizer.Add(wx.StaticText(self, label='Date'),
                   0, wx.ALIGN_CENTER_VERTICAL)
         ctrlsizer.Add(self.datechoice)
-        ctrlsizer.Add(wx.StaticText(self, label='FIR'), 0,
-                  wx.ALIGN_CENTER_VERTICAL|wx.LEFT, 8)
-        ctrlsizer.Add(self.firchoice)
         ctrlsizer.Add(wx.StaticText(self, label='Number of Days'),
                   0, wx.ALIGN_CENTER_VERTICAL)
         ctrlsizer.Add(self.dayschoice)
@@ -178,12 +192,11 @@ class NotamPanel(wx.Panel):
         box = wx.StaticBox(self, label='Briefing Details')
         boxsizer = wx.StaticBoxSizer(box)
         boxsizer.Add(ctrlsizer, 0, wx.RIGHT|wx.LEFT|wx.BOTTOM, 8)
-        border.Add(boxsizer, 1, wx.ALL|wx.EXPAND, 4)
 
-        text = wx.StaticText(self, label=
-            'Displays Notams from EAD site at www.ead.eurocontrol.int\n'
-            'Requires an EAD account and a PDF reader to view the results')
+        border = wx.BoxSizer(wx.VERTICAL)
         border.Add(text, 0, wx.ALL, 8)
+        border.Add(boxsizer, 0, wx.ALL, 4)
+        border.Add(notam_button, 0, wx.ALL, 8)
 
         self.SetAutoLayout(True)
         self.SetSizer(border)
@@ -191,10 +204,8 @@ class NotamPanel(wx.Panel):
     def get_values(self):
         day = self.datechoice.GetSelection()
         num_days = self.dayschoice.GetSelection() + 1
-        fir = self.firchoice.GetSelection()
 
-        firs = (('EGTT', ), ('EGPX', ), ('EGTT', 'EGPX'))[fir]
-        return (firs, day, num_days)
+        return (day, num_days)
 
 #------------------------------------------------------------------------------
 # Program information
@@ -230,28 +241,22 @@ class MainPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
 
         nb = wx.Notebook(self)
-        self.notam_panel = NotamPanel(nb)
+        self.notam_panel = NotamPanel(nb, self)
         self.settings_panel= SettingsPanel(nb)
         self.about_panel = AboutPanel(nb)
         nb.AddPage(self.notam_panel, 'NOTAM')
         nb.AddPage(self.settings_panel, 'Settings')
         nb.AddPage(self.about_panel, 'About')
 
-        notam_button = wx.Button(self, label='Get NOTAMS')
-        notam_button.SetDefault()
-        self.Bind(wx.EVT_BUTTON, self.on_click, notam_button)
-        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        button_sizer.Add(notam_button, 0, wx.RIGHT, 3)
-
         sizer = wx.FlexGridSizer(cols=1, vgap=5)
         sizer.Add(nb, 0, wx.LEFT|wx.RIGHT, 4)
-        sizer.Add(button_sizer, 0, wx.ALIGN_RIGHT|wx.RIGHT|wx.BOTTOM, 4)
         self.SetSizer(sizer)
         sizer.Fit(self)
 
     def on_click(self, event):
-        firs, day, num_days = self.notam_panel.get_values()
-        user, pwd, mapinfo = self.settings_panel.get_values()
+        day, num_days = self.notam_panel.get_values()
+        user, pwd, fir, mapinfo = self.settings_panel.get_values()
+        firs = (('EGTT', ), ('EGPX', ), ('EGTT', 'EGPX'))[fir]
 
         dir = tempfile.gettempdir()
         filename = self.make_tmpfile(dir)
@@ -323,7 +328,10 @@ class NotamApp(wx.App):
         return True
 
     def excepthook(self, type, value, tb):
-        if type == ValueError:
+        if type == navplot.NavplotError:
+            msg = value.value +\
+                  '\nCheck username & password or try again later'
+        elif type == ValueError:
             msg = 'Error parsing the map coordinate settings.\n'\
                   'Reset the values or check they are valid numbers'
         elif type == urllib2.URLError:
