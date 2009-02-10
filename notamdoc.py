@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import math
-import os
 import datetime
 import unicodedata
 from reportlab.pdfgen import canvas
@@ -114,7 +113,7 @@ def drawFirstPage(canvas, doc):
     moveFlag = True
     path = canvas.beginPath()
     try:
-        f = open(os.path.expanduser(MAP_FILE))
+        f = open(MAP_FILE)
         for l in f:
             if l[0] != '#':
                 lon, lat = map(float, l.split('\t'))
