@@ -194,8 +194,8 @@ class NotamPanel(wx.Panel):
         boxsizer.Add(ctrlsizer, 0, wx.RIGHT|wx.LEFT|wx.BOTTOM, 8)
 
         border = wx.BoxSizer(wx.VERTICAL)
-        border.Add(text, 0, wx.ALL, 8)
-        border.Add(boxsizer, 0, wx.ALL, 4)
+        border.Add(text, 0, wx.LEFT|wx.TOP, 8)
+        border.Add(boxsizer, 0, wx.ALL, 8)
         border.Add(notam_button, 0, wx.ALL, 8)
 
         self.SetAutoLayout(True)
@@ -216,7 +216,7 @@ class AboutPanel(wx.Panel):
         space = wx.BoxSizer(wx.VERTICAL)
 
         t = wx.StaticText(self, label=
-            u'NavPlot Version 0.4, Copyright © 2005-8 Alan Sparrow')
+            u'NavPlot Version 0.5, Copyright © 2005-9 Alan Sparrow')
         border.Add(t)
         t = wx.StaticText(self, label=
             'NavPlot comes with ABSOLUTELY NO WARRANTY. This is\n'
