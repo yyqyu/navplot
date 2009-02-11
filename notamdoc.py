@@ -112,24 +112,22 @@ def drawFirstPage(canvas, doc):
     # Coast line from http://rimmer.ngdc.noaa.gov/mgg/coast/getcoast.html
     moveFlag = True
     path = canvas.beginPath()
-    try:
-        f = open(MAP_FILE)
-        for l in f:
-            if l[0] != '#':
-                lon, lat = map(float, l.split('\t'))
-                x, y = doc.latlon2xy(lat, lon)
-                if moveFlag:
-                    path.moveTo(x, y)
-                    moveFlag = False
-                else:
-                    path.lineTo(x, y)
+
+    f = open(MAP_FILE)
+    for l in f:
+        if l[0] != '#':
+            lon, lat = map(float, l.split('\t'))
+            x, y = doc.latlon2xy(lat, lon)
+            if moveFlag:
+                path.moveTo(x, y)
+                moveFlag = False
             else:
-                moveFlag = True
-        canvas.setStrokeColor(darkgray)
-        canvas.drawPath(path)
-        f.close()
-    except IOError:
-        sys.stderr.write('Error reading map file\n')
+                path.lineTo(x, y)
+        else:
+            moveFlag = True
+    canvas.setStrokeColor(darkgray)
+    canvas.drawPath(path)
+    f.close()
 
     # Draw some gliding sites
     canvas.setStrokeColor(gray)
