@@ -28,11 +28,7 @@ import sys
 import time
 import urllib
 import urllib2
-try:
-    # Python2.5 or later
-    import xml.etree.ElementTree as ET
-except ImportError:
-    import elementtree.ElementTree as ET
+import xml.etree.ElementTree as ET
 
 import notamdoc
 
