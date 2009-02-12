@@ -178,6 +178,13 @@ class NotamPanel(wx.Panel):
         notam_button.SetDefault()
         self.Bind(wx.EVT_BUTTON, self.main_panel.on_click, notam_button)
 
+        quit_button = wx.Button(self, label='Quit')
+        self.Bind(wx.EVT_BUTTON, self.main_panel.on_quit, quit_button)
+
+        button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer.Add(notam_button, 0, wx.ALIGN_LEFT)
+        button_sizer.Add(quit_button, 0, wx.LEFT, 8)
+
         text = wx.StaticText(self, label=
             'Displays Notams from EAD site at www.ead.eurocontrol.int')
 
@@ -196,7 +203,7 @@ class NotamPanel(wx.Panel):
         border = wx.BoxSizer(wx.VERTICAL)
         border.Add(text, 0, wx.LEFT|wx.TOP, 8)
         border.Add(boxsizer, 0, wx.ALL, 8)
-        border.Add(notam_button, 0, wx.ALL, 8)
+        border.Add(button_sizer, 0, wx.LEFT, 8)
 
         self.SetAutoLayout(True)
         self.SetSizer(border)
@@ -237,10 +244,11 @@ class AboutPanel(wx.Panel):
 
 #------------------------------------------------------------------------------
 class MainPanel(wx.Panel):
-    def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+    def __init__(self, main_window):
+        wx.Panel.__init__(self, main_window)
 
         nb = wx.Notebook(self)
+        self.main_window = main_window
         self.notam_panel = NotamPanel(nb, self)
         self.settings_panel= SettingsPanel(nb)
         self.about_panel = AboutPanel(nb)
@@ -263,7 +271,7 @@ class MainPanel(wx.Panel):
 
         start_date = datetime.date.today() + datetime.timedelta(day)
 
-        msg = MsgDialog(self.GetParent(),
+        msg = MsgDialog(self.main_window,
             'Dowloading NOTAMS from EAD\n'
             'This may take half a minute or more. Please be patient...',
             'NOTAM Download')
@@ -289,6 +297,9 @@ class MainPanel(wx.Panel):
                       'from http://www.nats.co.uk/operational/pibs/index.shtml'
             m = wx.MessageDialog(self, msg, 'Error', wx.OK|wx.ICON_ERROR)
             m.ShowModal()
+
+    def on_quit(self, event):
+        self.main_window.Close(True)
 
     def make_tmpfile(self, dir, num=0):
         if num:
