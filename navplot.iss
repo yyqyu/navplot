@@ -5,17 +5,18 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{FC42A712-1D4B-4AA0-84B2-A88EAA23482D}
+AppId={{9D4E5816-74D2-4DB0-8196-C9D20DB191A4}
 AppName=NavPlot
-AppVerName=NavPlot v0.5
+AppVerName=NavPlot 0.5
 AppPublisher=Freeflight
-AppPublisherURL=http://www.freeflight.org.uk
-AppSupportURL=http://www.freeflight.org.uk
-AppUpdatesURL=http://www.freeflight.org.uk
+AppPublisherURL=http://www.freeflight.org.uk/
+AppSupportURL=http://www.freeflight.org.uk/
+AppUpdatesURL=http://www.freeflight.org.uk/
 DefaultDirName={pf}\NavPlot
 DefaultGroupName=NavPlot
 LicenseFile=U:\navplot\dist\gpl.txt
 OutputBaseFilename=setup
+SetupIconFile=U:\navplot\dist\navplot.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -27,41 +28,38 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "U:\navplot\dist\gnavplot.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\_hashlib.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\_rl_accel.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\_socket.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\_ssl.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\bz2.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\library.zip"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\map.dat"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\MSVCR71.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\navplot.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\pyexpat.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\python25.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\readme.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\select.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\sgmlop.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\unicodedata.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wx._controls_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wx._core_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wx._gdi_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wx._misc_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wx._windows_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wxbase28uh_net_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wxbase28uh_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wxmsw28uh_adv_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wxmsw28uh_core_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\navplot\dist\wxmsw28uh_html_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\gnavplot.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\pyexpat.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\python25.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\select.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\sgmlop.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\unicodedata.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\w9xpopen.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wx._controls_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wx._core_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wx._gdi_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wx._misc_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wx._windows_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wxbase28uh_net_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wxbase28uh_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wxmsw28uh_adv_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wxmsw28uh_core_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\wxmsw28uh_html_vc.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\_hashlib.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\_rl_accel.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\_socket.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\_ssl.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\bz2.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\gnavplot.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\library.zip"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\map.dat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\MSVCR71.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\navplot.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\NavPlot"; Filename: "{app}\gnavplot.exe"
-Name: "{commondesktop}\NavPlot"; Filename: "{app}\gnavplot.exe"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\NavPlot"; Filename: "{app}\gnavplot.exe"; Tasks: quicklaunchicon
-
-[Run]
-Filename: "{app}\gnavplot.exe"; Description: "{cm:LaunchProgram,NavPlot}"; Flags: nowait postinstall skipifsilent
-
+Name: "{group}\NavPlot"; Filename: "{app}\gnavplot.exe"; WorkingDir: "{app}"; IconFilename: "{app}\navplot.ico"
+Name: "{commondesktop}\NavPlot"; Filename: "{app}\gnavplot.exe"; WorkingDir: "{app}"; IconFilename: "{app}\navplot.ico"; Tasks: desktopicon
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\NavPlot"; Filename: "{app}\gnavplot.exe"; WorkingDir: "{app}"; IconFilename: "{app}\navplot.ico"; Tasks: quicklaunchicon
