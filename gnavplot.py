@@ -203,7 +203,7 @@ class NotamPanel(wx.Panel):
         border = wx.BoxSizer(wx.VERTICAL)
         border.Add(text, 0, wx.LEFT|wx.TOP, 8)
         border.Add(boxsizer, 0, wx.ALL, 8)
-        border.Add(button_sizer, 0, wx.LEFT, 8)
+        border.Add(button_sizer, 0, wx.TOP|wx.LEFT, 8)
 
         self.SetAutoLayout(True)
         self.SetSizer(border)

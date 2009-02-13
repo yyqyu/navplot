@@ -14,9 +14,9 @@ AppSupportURL=http://www.freeflight.org.uk/
 AppUpdatesURL=http://www.freeflight.org.uk/
 DefaultDirName={pf}\NavPlot
 DefaultGroupName=NavPlot
-LicenseFile=U:\navplot\dist\gpl.txt
+LicenseFile=dist\gpl.txt
 OutputBaseFilename=setup
-SetupIconFile=U:\navplot\dist\navplot.ico
+SetupIconFile=dist\navplot.ico
 Compression=lzma
 SolidCompression=yes
 
