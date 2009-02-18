@@ -341,7 +341,9 @@ class NotamApp(wx.App):
     def excepthook(self, type, value, tb):
         if type == navplot.NavplotError:
             msg = value.value +\
-                  '\nCheck username & password or try again later'
+                  '\n\nCheck your username & password and make sure you\n' +\
+                  'have the Application Access mode set to Plain HTML in\n' +\
+                  'your profile settings on the EAD website.'
         elif type == ValueError:
             msg = 'Error parsing the map coordinate settings.\n'\
                   'Reset the values or check they are valid numbers'
