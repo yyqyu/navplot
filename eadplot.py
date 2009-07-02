@@ -19,7 +19,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import cookielib
 import datetime
 import getopt
 import htmlentitydefs
@@ -143,15 +142,14 @@ def unescape(text):
         return text # leave as is
     return re.sub("&#?\w+;", fixup, text)
 
+def append_session_id(url, session_id):
+    return url + (";jsessionid=%s" % session_id)
+
 #------------------------------------------------------------------------------
 def navplot(pdf_filename, firs, start_date, num_days, username, password,
             mapinfo):
     """Download NOTAM data from EAD Basic website, parse NOTAM data and
        convert to PDF document."""
-
-    # Build url opener with cookie handling
-    cj = cookielib.CookieJar()
-    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
     # Login to EAD
     url_base = 'http://www.ead.eurocontrol.int'
@@ -161,16 +159,27 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
         'password': password
     }
     data = urllib.urlencode(values)
-    response = opener.open(url, data)
+    response = urllib2.urlopen(url, data)
 
-    # Get applications page search for URL path (including authenication cookie)
-    # for the NOTAM app
+    # Get login session id
+    s = re.search('jsessionid=([^"]*)', response.read())
+    if s is None:
+        raise NavplotError("Unsuccessful login")
+    session_id = s.group(1)
+
+    # Get applications page and search for URL path (including a new
+    # session id) for the NOTAM app
     url = url_base + "/publicuser/protect/pu/applicationenter.do"
-    response = opener.open(url)
+    url = append_session_id(url, session_id)
+    response = urllib2.urlopen(url)
     s = re.search("'Generate PIB', '([^']*)", response.read())
     if s is None:
         raise NavplotError("Can't get NOTAM application path")
     notam_gen_path = s.group(1)
+
+    # Get the new session id
+    s = re.search("jsessionid=(.*)", notam_gen_path)
+    notam_session_id = s.group(1)
 
     # Calculate duration (with adjustment if we are part way though day 1)
     duration = num_days*24
@@ -209,27 +218,32 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
     content_type, data = encode_multipart_formdata(values)
     request = urllib2.Request(url=url, data=data)
     request.add_header('content-type', content_type)
-    response = opener.open(request)
+    response = urllib2.urlopen(request)
 
-    # POST returns the orignal page with wanted NOTAM info in the 'onload'
+    # POST returns the orignal page with a NOTAM PIB id value
     # attribute of the HTML body
-    s = re.search("onload=\"window.open\('([^']*)'\)", response.read())
+    s = re.search("<IDString>([^<]*)</IDString>", response.read())
     if s is None:
         raise NavplotError("Can't get NOTAM page")
-    notam_path = unescape(s.group(1))
-    notam_path = re.sub("PIBLayout=HTML", "PIBLayout=XML", notam_path)
+    pib_id = s.group(1)
 
-    # Get briefing in XML format and convert to an ElementTree
+    # Construct notam path using session and pib ID's
+    notam_path =\
+        "/ino/servlet/PIBGenerator;jsessionid=%s?PIBId=%s&PIBLayout=XML" %\
+        (notam_session_id, pib_id)
+
+    # Get briefing in XML format
     url = url_base + notam_path
-    response = opener.open(url)
+    response = urllib2.urlopen(url)
     xml_str = response.read()
-    root = ET.fromstring(xml_str)
 
     # Logout from EAD
     url = url_base + '/publicuser/public/pu/logout.do'
-    opener.open(url)
+    url = append_session_id(url, session_id)
+    urllib2.urlopen(url, session_id)
 
     # Parse NOTAMS from XML
+    root = ET.fromstring(xml_str)
     notams = parse_notams(root)
 
     # Make header text
