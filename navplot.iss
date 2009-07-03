@@ -55,7 +55,9 @@ Source: "dist\gnavplot.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\library.zip"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\map.dat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\MSVCP71.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\MSVCR71.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\gdiplus.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\navplot.ico"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
