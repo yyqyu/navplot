@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 #
-# Import airspace data from Tim Newport-Peace format file
+# Convert airspace data from Tim Newport-Peace format file
 #
 
-import tnp
-from simpleparse.parser import Parser
-import projection
 import math, sys
 import getopt
+
+from simpleparse.parser import Parser
+
+import freenav.tnp as tnp
 
 MAX_LEVEL = 7000
 NM_TO_M = 1852
