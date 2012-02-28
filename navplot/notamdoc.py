@@ -18,6 +18,7 @@
 
 import math
 import datetime
+import pkgutil
 import unicodedata
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -42,7 +43,7 @@ GLIDING_SITES = {
     'TIB': (52.4575,  1.1616)}
 
 # File with map coordinates
-MAP_FILE = 'map.dat'
+MAP_RESOURCE = "data/map.dat"
 
 UTF8_BULLET = unicodedata.lookup('bullet').encode('utf-8')
 UTF8_COPYRIGHT_SIGN = unicodedata.lookup('copyright sign').encode('utf-8')
@@ -113,10 +114,10 @@ def drawFirstPage(canvas, doc):
     moveFlag = True
     path = canvas.beginPath()
 
-    f = open(MAP_FILE)
-    for l in f:
-        if l[0] != '#':
-            lon, lat = map(float, l.split('\t'))
+    map_data = pkgutil.get_data(__name__, MAP_RESOURCE)
+    for lin in map_data.splitlines():
+        if lin[0] != '#':
+            lon, lat = map(float, lin.split('\t'))
             x, y = doc.latlon2xy(lat, lon)
             if moveFlag:
                 path.moveTo(x, y)
@@ -127,7 +128,6 @@ def drawFirstPage(canvas, doc):
             moveFlag = True
     canvas.setStrokeColor(darkgray)
     canvas.drawPath(path)
-    f.close()
 
     # Draw some gliding sites
     canvas.setStrokeColor(gray)

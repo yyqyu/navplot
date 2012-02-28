@@ -22,6 +22,7 @@
 
 import datetime
 import os
+import pkgutil
 import tempfile
 import time
 import string
@@ -321,7 +322,8 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, parent, title=title,
             style = wx.MINIMIZE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX)
 
-        self.SetIcon(wx.Icon('navplot.ico', wx.BITMAP_TYPE_ICO))
+        xpm = pkgutil.get_data(__name__, 'data/navplot.xpm')
+        self.SetIcon(wx.IconFromXPMData(xpm.splitlines()))
 
         panel = MainPanel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -358,6 +360,9 @@ class NotamApp(wx.App):
         d = wx.MessageDialog(self.frame, msg, 'Error', wx.OK|wx.ICON_ERROR)
         d.ShowModal()
 
-if __name__ == '__main__':
+def run():
     app = NotamApp(redirect=0)
     app.MainLoop()
+
+if __name__ == '__main__':
+    run()
