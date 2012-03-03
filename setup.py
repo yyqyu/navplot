@@ -1,14 +1,21 @@
 from distutils.core import setup
-import py2exe
+try:
+    import py2exe
+except ImportError:
+    pass
 
-data_files = []
+packages = ["navplot"]
 
-# Add Navplot related data files
-data_files += [('.', ('map.dat', 'navplot.ico', 'gpl.txt', 'readme.txt'))]
+package_data = {"navplot": ["data/map.dat",
+                            "data/navplot.xpm"]}
 
-# Additional DLL's required for Python v2.5
-data_files += [('.',
-    ('C:\Python25\lib\site-packages\wx-2.8-msw-unicode\wx\MSVCP71.dll',
-     'C:\Python25\lib\site-packages\wx-2.8-msw-unicode\wx\gdiplus.dll'))]
+scripts=["bin/eadplot", "bin/gnavplot"]
 
-setup(windows=["gnavplot.py"], data_files=data_files)
+setup(name="navplot",
+      version="0.5.3",
+      url="http://www.freeflight.org.uk/",
+      author="Alan Sparrow",
+      author_email="software@freeflight.org.uk",
+      packages=packages,
+      package_data=package_data,
+      scripts=scripts)
