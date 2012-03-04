@@ -19,9 +19,11 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import ConfigParser
 import datetime
 import getopt
 import htmlentitydefs
+import os.path
 import re
 import sys
 import time
@@ -33,10 +35,6 @@ import notamdoc
 
 #------------------------------------------------------------------------------
 # Modify stuff here as required
-
-# Username and password for EAD
-USERNAME=''
-PASSWORD=''
 
 # Flight information regions for area briefing
 FIRS = ('EGTT', )
@@ -276,6 +274,12 @@ def usage():
 
 #------------------------------------------------------------------------------
 def main():
+    config = ConfigParser.ConfigParser()
+    config.read(os.path.expanduser(os.path.join("~", ".navplot")))
+
+    username = config.get('ead', 'user')
+    password = config.get('ead', 'password')
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'd:n:p:u:h')
     except getopt.GetoptError:
@@ -285,8 +289,6 @@ def main():
     # Get any options
     delta_day = 0
     num_days = 1
-    username = USERNAME
-    password = PASSWORD
     for o, a in opts:
         if o == '-h':
             usage()
