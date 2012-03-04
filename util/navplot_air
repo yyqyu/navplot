@@ -77,7 +77,7 @@ class NavProcessor():
 def main():
     filename = sys.argv[1]
 
-    parser = Parser(tnp.tnp_decl, 'tnp_file')
+    parser = Parser(tnp.TNP_DECL, 'tnp_file')
     nav_processor = NavProcessor()
     tnp_processor = tnp.TnpProcessor(nav_processor)
 
