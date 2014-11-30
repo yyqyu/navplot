@@ -25,7 +25,7 @@ Acknowledgements:
 
 Upload instructions
 
-0. Change version number in gnavplot.py and navplot.iss
+0. Change version number in gnavplot.py, setup.py and navplot.iss
 
 1. Generate example navplot.pdf and copy to .../assets/navplot/
 
