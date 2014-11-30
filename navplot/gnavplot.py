@@ -61,6 +61,11 @@ class SettingsPanel(wx.Panel):
         border = wx.BoxSizer(wx.VERTICAL)
         settingsizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        hyperlink = wx.lib.hyperlink.HyperLinkCtrl(self, wx.ID_ANY,
+                "Change password at www.ead.eurocontrol.int",
+                URL="http://www.ead.eurocontrol.int")
+        border.Add(hyperlink, 0, wx.LEFT|wx.TOP, 8)
+
         self.lat_ctrl = wx.TextCtrl(self, size=(75, -1))
         self.lon_ctrl = wx.TextCtrl(self, size=(75, -1))
         self.width_ctrl = wx.TextCtrl(self, size=(75, -1))
