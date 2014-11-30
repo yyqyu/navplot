@@ -176,7 +176,7 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
     notam_gen_path = s.group(1)
 
     # Get the new session id
-    s = re.search("jsessionid=(.*)", notam_gen_path)
+    s = re.search("JSESSIONID=(.*)", notam_gen_path)
     notam_session_id = s.group(1)
 
     # Calculate duration (with adjustment if we are part way though day 1)

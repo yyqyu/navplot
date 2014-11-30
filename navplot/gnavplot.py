@@ -224,7 +224,7 @@ class AboutPanel(wx.Panel):
         space = wx.BoxSizer(wx.VERTICAL)
 
         t = wx.StaticText(self, label=
-            u'NavPlot Version 0.5.2, Copyright © 2005-9 Alan Sparrow')
+            u'NavPlot Version 0.5.3, Copyright © 2005-14 Alan Sparrow')
         border.Add(t)
         t = wx.StaticText(self, label=
             'NavPlot comes with ABSOLUTELY NO WARRANTY. This is\n'

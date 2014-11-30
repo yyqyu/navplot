@@ -1,9 +1,9 @@
 NavPlot
-Copyright (C) 2005-8 Alan Sparrow
-alan at freeflight dot org dot uk
+Copyright (C) 2005-14 Alan Sparrow
+navplot at freeflight dot org dot uk
 
 1. Running the program -
-    From the command line - python navplot.py [options] pdf_file
+    From the command line - python eadplot.py [options] pdf_file
     Or use the Windows standalone executable
 
 2. Requirements (for command line version) -
@@ -20,17 +20,15 @@ alan at freeflight dot org dot uk
     http://www.jrsoftware.org)
 
 Acknowledgements:
-  Airspace data from Rory O'Conor - http://www.btinternet.com/~rory.oconor
+  Airspace data from Geoff Brown
   Coast line from http://rimmer.ngdc.noaa.gov/mgg/coast/getcoast.html
 
 Upload instructions
 
 0. Change version number in gnavplot.py and navplot.iss
 
-1. Generate example navplot.pdf and copy to /htdocs/freeflight/dist/navplot/
+1. Generate example navplot.pdf and copy to .../assets/navplot/
 
-2. Make navplot.tar.gz and copy to .../dist/navplot
+2. Make setup.exe and copy to .../assets/navplot/
 
-3. Make setup.exe and copy to .../dist/navplot
-
-4. Update /htdocs/freeflight/software/index.htm
+4. Update website
