@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{9D4E5816-74D2-4DB0-8196-C9D20DB191A4}
 AppName=NavPlot
-AppVerName=NavPlot 0.5.3
+AppVerName=NavPlot 0.5.4
 AppPublisher=Freeflight
 AppPublisherURL=http://www.freeflight.org.uk/
 AppSupportURL=http://www.freeflight.org.uk/
