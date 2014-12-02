@@ -12,8 +12,8 @@ navplot at freeflight dot org dot uk
     (For Windows GUI) wxPython GUI toolkit (www.wxpython.org)
 
 3. Build instructions for Windows standalone executable -
-    python setup.py py2exe - builds windows executable in dist directory.
-    (Requires py2exe from www.py2exe.org)
+    pyinstaller gnavplot.spec - builds windows executable in dist directory.
+    (Requires pyinstaller from www.pyinstaller.org)
 
     To build a windows installation program run the Inno Setup script
     navplot.iss. (Requires the Inno Setup installer program from
