@@ -42,9 +42,6 @@ GLIDING_SITES = {
     'SUT': (54.2288, -1.2097),
     'TIB': (52.4575,  1.1616)}
 
-# File with map coordinates
-MAP_RESOURCE = "data/map.dat"
-
 UTF8_BULLET = unicodedata.lookup('bullet').encode('utf-8')
 UTF8_COPYRIGHT_SIGN = unicodedata.lookup('copyright sign').encode('utf-8')
 
@@ -53,7 +50,7 @@ UTF8_COPYRIGHT_SIGN = unicodedata.lookup('copyright sign').encode('utf-8')
 
 class DocTemplate(SimpleDocTemplate):
     def __init__(self, filename, firs, dateStr, notams, mapinfo,
-                 copyright_holder, **kw):
+                 mapdata, copyright_holder, **kw):
         SimpleDocTemplate.__init__(self, filename, **kw)
         self.lat0 = mapinfo[0]
         self.lon0 = mapinfo[1]
@@ -61,6 +58,7 @@ class DocTemplate(SimpleDocTemplate):
         self.dateStr = dateStr
         self.firs = firs
         self.bottomOffset = 5*mm
+        self.map_data = mapdata
         self.copyright_holder = copyright_holder
 
         self.mapwidth = self.pagesize[0]-self.rightMargin-self.leftMargin
@@ -114,7 +112,7 @@ def drawFirstPage(canvas, doc):
     moveFlag = True
     path = canvas.beginPath()
 
-    map_data = pkgutil.get_data(__name__, MAP_RESOURCE)
+    map_data = doc.map_data
     for lin in map_data.splitlines():
         if lin[0] != '#':
             lon, lat = map(float, lin.split('\t'))
@@ -159,7 +157,7 @@ def drawFirstPage(canvas, doc):
 # Produce NOTAM document
 def format_doc(local_notams, area_notams, boring_notams, local_coords,
                header, firs, start_date, num_days, filename, mapinfo,
-               copyright_holder):
+               mapdata, copyright_holder):
 
     date_str = start_date.strftime('%a, %d %b %y')
     if num_days > 1:
@@ -168,7 +166,7 @@ def format_doc(local_notams, area_notams, boring_notams, local_coords,
 
     # Define Platypus template and paragraph styles
     doc = DocTemplate(filename, firs, date_str, local_coords, mapinfo,
-                      copyright_holder,
+                      mapdata, copyright_holder,
                       leftMargin=15*mm, rightMargin=15*mm, bottomMargin=10*mm,
                       topMargin=15*mm,
                       title='NOTAM', author='Freeflight')
@@ -231,7 +229,7 @@ def format_doc(local_notams, area_notams, boring_notams, local_coords,
 
 #------------------------------------------------------------------------------
 def notamdoc(notams, header, firs, start_date, num_days, filename, mapinfo,
-             copyright_holder):
+             mapdata, copyright_holder):
     # Sort by latitude of area centre
     notams.sort(lambda x, y: cmp(int(x['centre'][:4]), int(y['centre'][:4])))
 
@@ -278,4 +276,4 @@ def notamdoc(notams, header, firs, start_date, num_days, filename, mapinfo,
 
     format_doc(interesting_notams, area_notams, boring_notams,
                interesting_coords, header, firs, start_date, num_days,
-               filename, mapinfo, copyright_holder)
+               filename, mapinfo, mapdata, copyright_holder)

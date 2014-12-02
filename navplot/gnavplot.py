@@ -22,6 +22,7 @@
 
 import datetime
 import os
+import os.path
 import pkgutil
 import tempfile
 import time
@@ -267,6 +268,15 @@ class MainPanel(wx.Panel):
         self.SetSizer(sizer)
         sizer.Fit(self)
 
+        # Load map data
+        if getattr(sys, 'frozen', False):
+            # Running from Pyinstaller bundle
+            basedir = sys._MEIPASS
+        else:
+            basedir = os.path.dirname(__file__)
+        datafile = os.path.join(basedir, "data", "map.dat")
+        self.mapdata = open(datafile).read()
+
     def on_click(self, event):
         day, num_days = self.notam_panel.get_values()
         user, pwd, fir, mapinfo = self.settings_panel.get_values()
@@ -286,7 +296,7 @@ class MainPanel(wx.Panel):
         wx.SafeYield()
         try:
             n = navplot.navplot(filename, firs, start_date, num_days, user, pwd,
-                                mapinfo)
+                                mapinfo, self.mapdata)
         finally:
             msg.Destroy()
             wx.EndBusyCursor()
@@ -327,8 +337,8 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, parent, title=title,
             style = wx.MINIMIZE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLOSE_BOX)
 
-        xpm = pkgutil.get_data(__name__, 'data/navplot.xpm')
-        self.SetIcon(wx.IconFromXPMData(xpm.splitlines()))
+        #xpm = pkgutil.get_data(__name__, 'data/navplot.xpm')
+        #self.SetIcon(wx.IconFromXPMData(xpm.splitlines()))
 
         panel = MainPanel(self)
         sizer = wx.BoxSizer(wx.VERTICAL)

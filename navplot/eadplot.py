@@ -145,7 +145,7 @@ def append_session_id(url, session_id):
 
 #------------------------------------------------------------------------------
 def navplot(pdf_filename, firs, start_date, num_days, username, password,
-            mapinfo):
+            mapinfo, mapdata):
     """Download NOTAM data from EAD Basic website, parse NOTAM data and
        convert to PDF document."""
 
@@ -258,7 +258,7 @@ def navplot(pdf_filename, firs, start_date, num_days, username, password,
 
         # Build NOTAM PDF document
         notamdoc.notamdoc(notams, hdr_text, firs, start_date, num_days,
-                          pdf_filename, mapinfo, COPYRIGHT_HOLDER)
+                          pdf_filename, mapinfo, mapdata, COPYRIGHT_HOLDER)
 
     return len(notams)
 
@@ -313,10 +313,14 @@ def main():
     start_date = datetime.datetime.utcnow().date() +\
                  datetime.timedelta(delta_day)
 
+    # Read coastline/airspace data
+    mapdata = open(os.path.join("data", "map.dat")).read()
+
     n = 0
     try:
         n = navplot(pdf, FIRS, start_date, num_days, username, password,
-                    (DFLT_LATITUDE, DFLT_LONGITUDE, DFLT_WIDTH))
+                    (DFLT_LATITUDE, DFLT_LONGITUDE, DFLT_WIDTH),
+                    mapdata)
     except NavplotError, err:
         sys.stderr.write(err.value + "\n")
 
