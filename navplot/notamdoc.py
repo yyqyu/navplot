@@ -194,7 +194,7 @@ def format_doc(local_notams, area_notams, boring_notams, local_coords,
     story.append(Paragraph('<b>NOTAM Header</b>', subStyle))
     h = '\n'.join([hl for hl in header.splitlines() if hl])
     story.append(XPreformatted(h, otherStyle))
-    story.append(Paragraph('<b>Plotted Navigation Warnings<b>', subStyle))
+    story.append(Paragraph('<b>Plotted Navigation Warnings</b>', subStyle))
     story.append(Paragraph(
         'Plotted Navigation Warnings are Restrictions of all types '\
         'and Warnings of type: <i>Air Display</i>, <i>Aerobatics</i>, '\
