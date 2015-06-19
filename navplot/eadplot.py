@@ -277,8 +277,11 @@ def main():
     config = ConfigParser.ConfigParser()
     config.read(os.path.expanduser(os.path.join("~", ".navplot")))
 
-    username = config.get('ead', 'user')
-    password = config.get('ead', 'password')
+    try:
+        username = config.get('ead', 'user')
+        password = config.get('ead', 'password')
+    except ConfigParser.NoSectionError:
+        pass
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'd:n:p:u:h')
