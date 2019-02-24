@@ -8,12 +8,12 @@ navplot at freeflight dot org dot uk
 
 2. Requirements (for command line version) -
     Python 2.4 or greater (www.python.org)
-    ReportLab Open Source PDF library (www.reportlab.org)
-    (For Windows GUI) wxPython GUI toolkit (www.wxpython.org)
+    ReportLab Open Source PDF library (www.reportlab.org)use: pip install reportlab
+    (For Windows GUI) wxPython GUI toolkit (www.wxpython.org) use: pip install -U wxPython
 
 3. Build instructions for Windows standalone executable -
     pyinstaller gnavplot.spec - builds windows executable in dist directory.
-    (Requires pyinstaller from www.pyinstaller.org)
+    (Requires pyinstaller from www.pyinstaller.org)use: pip install pyinstaller
 
     To build a windows installation program run the Inno Setup script
     navplot.iss. (Requires the Inno Setup installer program from
